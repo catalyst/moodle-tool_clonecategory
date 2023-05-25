@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * Clone category admin settings
+ * Clone category history page.
  *
  * @package    local_clonecategory
- * @copyright  2018, tim@avide.com.au, 2023 Matthew Hilton <matthewhilton@catalyst-au.net>
+ * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+use local_clonecategory\history_table;
 
-if (has_capability('moodle/site:config', context_system::instance())) {
-    $ADMIN->add('localplugins', new admin_externalpage(
-        'clonecategory_action',
-        get_string('action_link', 'local_clonecategory'),
-        $CFG->wwwroot. '/local/clonecategory/action.php'));
-}
+require('../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+
+admin_externalpage_setup('clonecategory_action');
+
+$PAGE->set_url(new moodle_url("/local/clonecategory/history.php"));
+$PAGE->set_context(context_system::instance());
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('history_table', 'local_clonecategory'));
+history_table::display();
+echo $OUTPUT->footer();
