@@ -24,8 +24,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 if (has_capability('moodle/site:config', context_system::instance())) {
-    $ADMIN->add('localplugins', new admin_externalpage(
+    $ADMIN->add('localplugins', new admin_category('local_clonecategory_pages', get_string('action_link', 'local_clonecategory')));
+
+    // Main page.
+    $ADMIN->add('local_clonecategory_pages', new admin_externalpage(
         'clonecategory_action',
         get_string('action_link', 'local_clonecategory'),
         $CFG->wwwroot. '/local/clonecategory/action.php'));
+
+    // History page.
+    $ADMIN->add('local_clonecategory_pages', new admin_externalpage(
+        'clonecategory_history',
+        get_string('cloning_history', 'local_clonecategory'),
+        $CFG->wwwroot. '/local/clonecategory/history.php'));
 }

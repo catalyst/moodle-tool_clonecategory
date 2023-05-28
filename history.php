@@ -26,7 +26,7 @@ use local_clonecategory\history_table;
 require('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-admin_externalpage_setup('clonecategory_action');
+admin_externalpage_setup('clonecategory_history');
 
 $PAGE->set_url(new moodle_url("/local/clonecategory/history.php"));
 $PAGE->set_context(context_system::instance());
