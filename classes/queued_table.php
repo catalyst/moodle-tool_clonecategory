@@ -16,6 +16,7 @@
 
 namespace local_clonecategory;
 
+use moodle_url;
 use table_sql;
 
 defined('MOODLE_INTERNAL') || die;
@@ -32,14 +33,16 @@ class queued_table extends table_sql {
     /**
      * Create table
      * @param string $uniqueid
+     * @param string $cloneidfilter Clone ID to filter by
      */
-    public function __construct(string $uniqueid) {
-        global $PAGE;
+    public function __construct(string $uniqueid, string $cloneidfilter = '') {
+        global $PAGE, $DB;
 
         parent::__construct($uniqueid);
 
         $columns = [
             'id',
+            'cloneid',
             'timecreated',
             'course',
             'categoryfrom',
@@ -49,6 +52,7 @@ class queued_table extends table_sql {
 
         $headers = [
             get_string('queued:id', 'local_clonecategory'),
+            get_string('queued:cloneid', 'local_clonecategory'),
             get_string('queued:timecreated', 'local_clonecategory'),
             get_string('queued:course', 'local_clonecategory'),
             get_string('queued:categoryfrom', 'local_clonecategory'),
@@ -59,8 +63,17 @@ class queued_table extends table_sql {
         $this->define_columns($columns);
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
-        $this->set_sql('id,customdata,timecreated,timestarted', '{task_adhoc}', "classname = :classname",
-            ['classname' => '\local_clonecategory\task\clone_course_task']);
+
+        $where = "classname = :classname";
+        $params = ['classname' => '\local_clonecategory\task\clone_course_task'];
+
+        // Add additional clone id filter.
+        if (!empty($cloneidfilter)) {
+            $where .= " AND " . $DB->sql_like('customdata', ':cloneid');
+            $params['cloneid'] = '%' . $cloneidfilter . '%';
+        }
+
+        $this->set_sql('id,customdata,timecreated,timestarted', '{task_adhoc}', $where, $params);
         $this->sortable(true, 'timecreated', SORT_DESC);
     }
 
@@ -116,14 +129,38 @@ class queued_table extends table_sql {
      * @param object $row
      */
     public function col_timestarted($row) {
-        return !empty($row->timestarted) ? userdate($row->timestarted) : '';
+        // Not started yet.
+        if (empty($row->timestarted)) {
+            return \html_writer::tag('p', get_string('notstarted', 'local_clonecategory'), ['class' => 'badge badge-light']);
+        }
+
+        // Started / in progress.
+        $timestamp = userdate($row->timestarted);
+        return \html_writer::tag('p', get_string('started', 'local_clonecategory', $timestamp), ['class' => 'badge badge-info']);
+    }
+
+    /**
+     * Clone id col
+     * @param object $row
+     */
+    public function col_cloneid($row) {
+        $cloneid = json_decode($row->customdata)->cloneid ?? '';
+
+        if (empty($cloneid)) {
+            return '';
+        }
+
+        // Else show link that when clicked filters the table by the clone id.
+        $url = new moodle_url($this->baseurl, ['cloneid' => $cloneid]);
+        return \html_writer::link($url, $cloneid);
     }
 
     /**
      * Creates table and renders it.
+     * @param string $cloneidfilter Clone ID to filter by, ignores if empty.
      */
-    public static function display() {
-        $table = new queued_table(uniqid('queued_table'));
+    public static function display(string $cloneidfilter = '') {
+        $table = new queued_table(uniqid('queued_table'), $cloneidfilter);
         $table->out(30, true);
     }
 }

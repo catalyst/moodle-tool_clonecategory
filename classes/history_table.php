@@ -32,30 +32,52 @@ class history_table extends table_sql {
      /**
       * Create table
       * @param string $uniqueid
+      * @param string $cloneidfilter clone ID to filter by
       */
-    public function __construct(string $uniqueid) {
-        global $PAGE;
+    public function __construct(string $uniqueid, string $cloneidfilter) {
+        global $PAGE, $DB;
 
         parent::__construct($uniqueid);
 
         $columns = [
             'id',
+            'cloneid',
             'timecreated',
-            'message'
+            'message',
+            'status'
         ];
 
         $headers = [
-            'id',
-            'timecreated',
-            'message'
+            get_string('history:id', 'local_clonecategory'),
+            get_string('history:cloneid', 'local_clonecategory'),
+            get_string('history:time', 'local_clonecategory'),
+            get_string('history:message', 'local_clonecategory'),
+            get_string('history:status', 'local_clonecategory'),
         ];
 
         $this->define_columns($columns);
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
-        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', "eventname = :eventname",
-            ['eventname' => '\local_clonecategory\event\course_cloned']);
+
+        $where = "eventname = :eventname";
+        $params = ['eventname' => '\local_clonecategory\event\course_cloned'];
+
+        if (!empty($cloneidfilter)) {
+            $where .= " AND " . $DB->sql_like('other', ':cloneid');
+            $params['cloneid'] = '%' . $cloneidfilter . '%';
+        }
+
+        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', $where, $params);
         $this->sortable(true, 'timecreated', SORT_DESC);
+    }
+
+    /**
+     * Clone ID column.
+     * @param object $row
+     */
+    public function col_cloneid($row) {
+        $decoded = \tool_log\helper\reader::decode_other($row->other);
+        return $decoded['cloneid'] ?? '';
     }
 
     /**
@@ -76,10 +98,31 @@ class history_table extends table_sql {
     }
 
     /**
-     * Creates table and renders it.
+     * Status column.
+     * @param object $row
      */
-    public static function display() {
-        $table = new history_table(uniqid('queued_table'));
+    public function col_status($row) {
+        $decoded = \tool_log\helper\reader::decode_other($row->other);
+        $success = $decoded['success'] ?? '';
+
+        if ($success === false) {
+            return \html_writer::tag('p', get_string('failed', 'local_clonecategory'), ['class' => 'badge badge-danger']);
+        }
+
+        if ($success === true) {
+            return \html_writer::tag('p', get_string('success', 'local_clonecategory'), ['class' => 'badge badge-success']);
+        }
+
+        // Unknown success status.
+        return '';
+    }
+
+    /**
+     * Creates table and renders it.
+     * @param string $cloneidfilter Clone ID to filter by, ignores if empty.
+     */
+    public static function display(string $cloneidfilter = '') {
+        $table = new history_table(uniqid('queued_table'), $cloneidfilter);
         $table->out(30, true);
     }
 }

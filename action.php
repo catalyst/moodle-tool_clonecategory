@@ -23,6 +23,8 @@
 
 use local_clonecategory\clonecategory_form;
 use local_clonecategory\cloner;
+use local_clonecategory\history_filter_form;
+use local_clonecategory\history_table;
 use local_clonecategory\queued_table;
 
 require('../../config.php');
@@ -38,42 +40,61 @@ $source = optional_param('source', 0, PARAM_INT);
 $dest = optional_param('destination', 0, PARAM_INT);
 $name = optional_param('name', '', PARAM_RAW);
 $start = optional_param('start', time(), PARAM_INT);
+$cloneid = optional_param('cloneid', '', PARAM_TEXT);
 $end = optional_param('end', strtotime('+3 month', time()), PARAM_INT);
 
 $PAGE->set_url(new moodle_url("/local/clonecategory/action.php"));
 $PAGE->set_context(context_system::instance());
 
-$formdata = [
+$cloneform = new clonecategory_form(null, [
     'source' => $source,
     'destination' => $dest,
     'destcategoryname' => $name,
     'startdate' => $start,
     'enddate' => $end,
-];
-
-$mform = new clonecategory_form(null, $formdata);
+]);
 
 // Redirect back if form is cancelled.
-if ($mform->is_cancelled()) {
+if ($cloneform->is_cancelled()) {
     redirect($returnurl);
 }
 
-if ($data = $mform->get_data()) {
+if ($data = $cloneform->get_data()) {
+    // Generate a uniqueid to track/group the clones.
+    $cloneid = uniqid();
+
     // Queue each as an adhoc task.
     list($src, $dest) = cloner::prepare($data);
-    cloner::queue($data, $src, $dest);
+    cloner::queue($data, $src, $dest, $cloneid);
 
     // Redirect back without form data,
     // to avoid re-submission.
-    redirect($PAGE->url, get_string('queuedsuccessfully', 'local_clonecategory'), null, \core\output\notification::NOTIFY_SUCCESS);
+    // Include the cloneid, so the tables auto-group by clone id.
+    $url = new moodle_url($PAGE->url, ['cloneid' => $cloneid]);
+    redirect($url, get_string('queuedsuccessfully', 'local_clonecategory'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('action_link', 'local_clonecategory'));
-$mform->display();
+$cloneform->display();
 
 echo $OUTPUT->heading(get_string('queued_table', 'local_clonecategory'));
-queued_table::display();
+echo $OUTPUT->heading(get_string('waitingforprocessing', 'local_clonecategory'), 3);
+
+if (!empty($cloneid)) {
+    $notifyoutput = html_writer::tag('span', get_string('showingclonesfor', 'local_clonecategory', $cloneid), ['class' => 'mr-2']);
+    $notifyoutput .= html_writer::link($PAGE->url, get_string('clearfilter', 'local_clonecategory'),
+        ['class' => 'btn btn-secondary']);
+    echo $OUTPUT->notification($notifyoutput, \core\output\notification::NOTIFY_INFO);
+}
+
+queued_table::display($cloneid);
+
+// If cloneid is given, also show history table for the given cloneid logs.
+if (!empty($cloneid)) {
+    echo $OUTPUT->heading(get_string('processed', 'local_clonecategory'), 3);
+    history_table::display($cloneid);
+}
 
 echo $OUTPUT->single_button(new moodle_url('/local/clonecategory/history.php'), get_string('viewclonelogs', 'local_clonecategory'));
 

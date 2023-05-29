@@ -45,10 +45,14 @@ $string['error_must_specify_both'] = 'You must enter both Name and IdNumber fiel
 $string['list_courses'] = "List courses";
 $string['clone_courses'] = "Clone courses";
 $string['eventcoursecloned'] = 'Course cloned';
-$string['queued_table'] = 'Requested clones waiting for processing';
+$string['queued_table'] = 'History';
 $string['history_table'] = 'Clone logs';
-$string['viewclonelogs'] = 'View clone logs';
+$string['viewclonelogs'] = 'View all clone logs';
 $string['taskstarted'] = 'In progress';
+$string['showingclonesfor'] = 'Showing clones for clone id {$a}';
+$string['clearfilter'] = 'Clear filter';
+$string['waitingforprocessing'] = 'Waiting for processing';
+$string['processed'] = 'Finished processing';
 
 $string['queuedsuccessfully'] = 'Queued successfully';
 $string['clonefailed'] = 'Cloning of course {$a->id} failed with message {$a->message}';
@@ -59,3 +63,15 @@ $string['queued:course'] = 'Course';
 $string['queued:categoryfrom'] = 'Category from';
 $string['queued:categoryto'] = 'Category to';
 $string['queued:timestarted'] = 'Processing start time';
+$string['queued:cloneid'] = 'Clone id';
+
+$string['history:id'] = 'Log id';
+$string['history:cloneid'] = 'Clone id';
+$string['history:time'] = 'Time';
+$string['history:message'] = 'Message';
+$string['history:status'] = 'Status';
+
+$string['notstarted'] = 'Not started yet';
+$string['started'] = 'Started - {$a}';
+$string['failed'] = 'Failed';
+$string['success'] = 'Success';

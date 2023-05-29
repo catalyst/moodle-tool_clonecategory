@@ -73,8 +73,9 @@ class cloner {
      * @param object $data form data
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
+     * @param string $cloneid Unique id to identify clone in adhoc tasks and logs
      */
-    public static function queue($data, core_course_category $src, core_course_category $dest) {
+    public static function queue($data, core_course_category $src, core_course_category $dest, string $cloneid) {
         $courseids = array_keys($src->get_courses(['recursive' => false]));
 
         foreach ($courseids as $courseid) {
@@ -83,7 +84,9 @@ class cloner {
                 'courseid' => $courseid,
                 'destid' => $dest->id,
                 'srcid' => $src->id,
-                'data' => $data
+                'data' => $data,
+                // Use a uniqueid to track the clone.
+                'cloneid' => $cloneid
             ]);
             manager::queue_adhoc_task($task, true);
         }
@@ -96,8 +99,11 @@ class cloner {
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
      * @param object $data form data
+     * @param string $cloneid Unique id to identify a group of clones in logs and adhoc tasks
      */
-    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest, object $data) {
+    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest, object $data,
+        string $cloneid) {
+
         global $DB;
 
         core_php_time_limit::raise(600);
@@ -136,24 +142,25 @@ class cloner {
         $entry = "Cloned {$course->id}/{$course->shortname} into {$newid}/{$newshortname};";
 
         // Log success to event log.
-        self::log_clone_status($entry, $clone['id']);
-
-        // Also log to cron logs.
-        mtrace($entry);
+        self::log_clone_status($cloneid, $entry, true, $clone['id']);
     }
 
     /**
      * Logs the status of a clone, by triggering a course_cloned event.
      *
+     * @param string $cloneid Unique ID to identify the log
      * @param string $statusmsg
+     * @param bool $success true if cloned successfully, else false
      * @param int $courseid
      */
-    public static function log_clone_status(string $statusmsg, int $courseid = 0) {
+    public static function log_clone_status(string $cloneid, string $statusmsg, bool $success, int $courseid = 0) {
         $event = course_cloned::create([
             "context"  => context_system::instance(),
             "objectid" => $courseid,
-            "other" => ["log" => $statusmsg]
+            "other" => ["log" => $statusmsg, "cloneid" => $cloneid, "success" => $success]
         ]);
         $event->trigger();
+
+        mtrace($statusmsg);
     }
 }
