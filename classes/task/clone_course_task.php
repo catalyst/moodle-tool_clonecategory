@@ -50,7 +50,7 @@ class clone_course_task extends \core\task\adhoc_task {
                 'message' => $e->getMessage()
             ]);
 
-            \local_clonecategory\cloner::log_clone_status($cloneid, $string, false);
+            \local_clonecategory\cloner::log_clone_status($cloneid, $string, false, $data->courseid, $data->srcid, $data->destid);
         }
     }
 }

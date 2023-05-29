@@ -123,6 +123,7 @@ class history_table extends table_sql {
      */
     public static function display(string $cloneidfilter = '') {
         $table = new history_table(uniqid('queued_table'), $cloneidfilter);
-        $table->out(30, true);
+        $table->set_attribute('class', 'generalbox generaltable table-sm');
+        $table->out(100, true);
     }
 }

@@ -21,9 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_clonecategory\clonecategory_form;
 use local_clonecategory\cloner;
-use local_clonecategory\history_filter_form;
+use local_clonecategory\form\clonecategory_form;
 use local_clonecategory\history_table;
 use local_clonecategory\queued_table;
 

@@ -24,6 +24,7 @@ use core_php_time_limit;
 use Exception;
 use local_clonecategory\event\course_cloned;
 use local_clonecategory\task\clone_course_task;
+use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/externallib.php');
@@ -55,11 +56,19 @@ class cloner {
 
         // If a destination category name was supplied, create it and update the $dest object.
         if (!empty($destchildname) && !empty($destchildidnumber)) {
-            if ($rec = $DB->get_record('course_categories', ['name' => trim($destchildname),
-                "idnumber" => trim($destchildidnumber), "parent" => $dest->id])) {
-                // We have an existing destination with all these details, use that one.
-                $dest = core_course_category::get($rec->id);
+            // Check for an existing course category by this id number.
+            $existingcat = $DB->get_record('course_categories', ['idnumber' => trim($destchildidnumber)]);
+
+            // Verify the existing category is a child of the $dest category.
+            if (!empty($existingcat) && $existingcat->parent != $dest->id) {
+                throw new moodle_exception('error:invalididnumber', 'local_clonecategory');
+            }
+
+            if (!empty($existingcat)) {
+                // Reuse the existing category.
+                $dest = core_course_category::get($existingcat->id);
             } else {
+                // Create a new category.
                 $dest = core_course_category::create([
                     "name" => trim($destchildname),
                     "idnumber" => trim($destchildidnumber),
@@ -122,7 +131,9 @@ class cloner {
 
         // If a course matching the shortname and destination category already exists, skip it.
         if ($DB->record_exists("course", ["shortname" => $shortname, "category" => $dest->id])) {
-            throw new Exception("Course with shortname {$shortname} already exists in the category. Skipped.");
+            $msg = "Course with shortname {$shortname} already exists in the category. Skipped.";
+            self::log_clone_status($cloneid, $msg, false, $courseid, $src->id, $dest->id);
+            return;
         }
 
         $options = [
@@ -143,14 +154,17 @@ class cloner {
         $newshortname = $clone['shortname'];
         $newfullname = str_replace($src->idnumber, $dest->idnumber, $course->fullname);
 
-        $DB->set_field_select('course', 'fullname', $newfullname, "id = ?", [$newid]);
-        $DB->set_field_select('course', 'startdate', $startdate, "id = ?", [$newid]);
-        $DB->set_field_select('course', 'enddate', $enddate, "id = ?", [$newid]);
+        $DB->update_record('course', [
+            'id' => $newid,
+            'fullname' => $newfullname,
+            'startdate' => $startdate,
+            'enddate' => $enddate
+        ]);
 
         $entry = "Cloned {$course->id}/{$course->shortname} into {$newid}/{$newshortname};";
 
         // Log success to event log.
-        self::log_clone_status($cloneid, $entry, true, $clone['id']);
+        self::log_clone_status($cloneid, $entry, true, $clone['id'], $src->id, $dest->id);
     }
 
     /**
@@ -160,12 +174,16 @@ class cloner {
      * @param string $statusmsg
      * @param bool $success true if cloned successfully, else false
      * @param int $courseid
+     * @param int $srccatid
+     * @param int $destcatid
      */
-    public static function log_clone_status(string $cloneid, string $statusmsg, bool $success, int $courseid = 0) {
+    public static function log_clone_status(string $cloneid, string $statusmsg, bool $success, int $courseid = 0, int $srccatid = 0,
+        int $destcatid = 0) {
         $event = course_cloned::create([
             "context"  => context_system::instance(),
             "objectid" => $courseid,
-            "other" => ["log" => $statusmsg, "cloneid" => $cloneid, "success" => $success]
+            "other" => ["log" => $statusmsg, "cloneid" => $cloneid, "success" => $success, "sourcecategory" => $srccatid,
+                "destcategory" => $destcatid]
         ]);
         $event->trigger();
 

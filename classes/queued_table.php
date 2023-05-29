@@ -74,7 +74,7 @@ class queued_table extends table_sql {
         }
 
         $this->set_sql('id,customdata,timecreated,timestarted', '{task_adhoc}', $where, $params);
-        $this->sortable(true, 'timecreated', SORT_DESC);
+        $this->sortable(false, 'id');
     }
 
     /**
@@ -136,7 +136,9 @@ class queued_table extends table_sql {
 
         // Started / in progress.
         $timestamp = userdate($row->timestarted);
-        return \html_writer::tag('p', get_string('started', 'local_clonecategory', $timestamp), ['class' => 'badge badge-info']);
+        $delta = format_time(time() - $row->timestarted);
+        return \html_writer::tag('p', get_string('started', 'local_clonecategory', $delta), ['class' => 'badge badge-info',
+            'title' => $timestamp]);
     }
 
     /**
@@ -161,6 +163,7 @@ class queued_table extends table_sql {
      */
     public static function display(string $cloneidfilter = '') {
         $table = new queued_table(uniqid('queued_table'), $cloneidfilter);
-        $table->out(30, true);
+        $table->set_attribute('class', 'generalbox generaltable table-sm');
+        $table->out(100, true);
     }
 }
