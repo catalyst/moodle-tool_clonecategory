@@ -40,9 +40,7 @@ class clone_course_task extends \core\task\adhoc_task {
             $src = \core_course_category::get($data->srcid);
             $dest = \core_course_category::get($data->destid);
 
-            throw new \coding_exception("test");
-
-            \local_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $data->data, $cloneid);
+            \local_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $cloneid, $data->startdate, $data->enddate);
         } catch (\Throwable $e) {
             // Catch so that adhoc task does not retry.
 

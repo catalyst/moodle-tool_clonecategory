@@ -38,28 +38,31 @@ require_once($CFG->dirroot . '/course/externallib.php');
 class cloner {
     /**
      * Prepares the clone by creating the categories if necessary.
-     * @param object $data form data.
+     * If a child category name and id number is supplied, a sub-category will be made inside the destination category.
+     *
+     * @param int $sourcecatid Source category ID
+     * @param int $destcatid Destination category ID
+     * @param string $destchildname (if making a child category) Name of child category
+     * @param string $destchildidnumber (if making a child category) ID Number of child category
      * @return array array containg the source and destination course categories.
      */
-    public static function prepare($data) {
+    public static function prepare(int $sourcecatid, int $destcatid, string $destchildname = '', string $destchildidnumber = '') {
         global $DB;
 
-        // Clone the category.
-
         // Category selection.
-        $src = core_course_category::get($data->source);
-        $dest = core_course_category::get($data->destination);
+        $src = core_course_category::get($sourcecatid);
+        $dest = core_course_category::get($destcatid);
 
         // If a destination category name was supplied, create it and update the $dest object.
-        if (!empty($data->destcategoryname) && !empty($data->destcategoryidnumber)) {
-            if ($rec = $DB->get_record('course_categories', ['name' => trim($data->destcategoryname),
-                "idnumber" => trim($data->destcategoryidnumber), "parent" => $dest->id])) {
+        if (!empty($destchildname) && !empty($destchildidnumber)) {
+            if ($rec = $DB->get_record('course_categories', ['name' => trim($destchildname),
+                "idnumber" => trim($destchildidnumber), "parent" => $dest->id])) {
                 // We have an existing destination with all these details, use that one.
                 $dest = core_course_category::get($rec->id);
             } else {
                 $dest = core_course_category::create([
-                    "name" => trim($data->destcategoryname),
-                    "idnumber" => trim($data->destcategoryidnumber),
+                    "name" => trim($destchildname),
+                    "idnumber" => trim($destchildidnumber),
                     "parent" => $dest->id
                 ]);
             }
@@ -70,12 +73,15 @@ class cloner {
 
     /**
      * Queues the cloning of the courses in the source category.
-     * @param object $data form data
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
      * @param string $cloneid Unique id to identify clone in adhoc tasks and logs
+     * @param int $startdate Date to set as course start time
+     * @param int $enddate Date to set as course end time
      */
-    public static function queue($data, core_course_category $src, core_course_category $dest, string $cloneid) {
+    public static function queue(core_course_category $src, core_course_category $dest, string $cloneid, int $startdate = 0,
+        int $enddate = 0) {
+
         $courseids = array_keys($src->get_courses(['recursive' => false]));
 
         foreach ($courseids as $courseid) {
@@ -84,7 +90,8 @@ class cloner {
                 'courseid' => $courseid,
                 'destid' => $dest->id,
                 'srcid' => $src->id,
-                'data' => $data,
+                'startdate' => $startdate,
+                'enddate' => $enddate,
                 // Use a uniqueid to track the clone.
                 'cloneid' => $cloneid
             ]);
@@ -98,11 +105,12 @@ class cloner {
      * @param int $courseid course to clone (in $src category)
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
-     * @param object $data form data
      * @param string $cloneid Unique id to identify a group of clones in logs and adhoc tasks
+     * @param int $startdate Course start date to set for cloned courses
+     * @param int $enddate Course end date to set for cloned courses
      */
-    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest, object $data,
-        string $cloneid) {
+    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest, string $cloneid,
+        int $startdate = 0, int $enddate = 0) {
 
         global $DB;
 
@@ -136,8 +144,8 @@ class cloner {
         $newfullname = str_replace($src->idnumber, $dest->idnumber, $course->fullname);
 
         $DB->set_field_select('course', 'fullname', $newfullname, "id = ?", [$newid]);
-        $DB->set_field_select('course', 'startdate', $data->startdate, "id = ?", [$newid]);
-        $DB->set_field_select('course', 'enddate', $data->enddate, "id = ?", [$newid]);
+        $DB->set_field_select('course', 'startdate', $startdate, "id = ?", [$newid]);
+        $DB->set_field_select('course', 'enddate', $enddate, "id = ?", [$newid]);
 
         $entry = "Cloned {$course->id}/{$course->shortname} into {$newid}/{$newshortname};";
 

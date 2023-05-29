@@ -64,8 +64,8 @@ if ($data = $cloneform->get_data()) {
     $cloneid = uniqid();
 
     // Queue each as an adhoc task.
-    list($src, $dest) = cloner::prepare($data);
-    cloner::queue($data, $src, $dest, $cloneid);
+    list($src, $dest) = cloner::prepare($data->source, $data->destination, $data->destcategoryname, $data->destcategoryidnumber);
+    cloner::queue($src, $dest, $cloneid, $data->startdate, $data->enddate);
 
     // Redirect back without form data,
     // to avoid re-submission.
