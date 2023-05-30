@@ -84,11 +84,10 @@ class cloner {
      * Queues the cloning of the courses in the source category.
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
-     * @param string $cloneid Unique id to identify clone in adhoc tasks and logs
      * @param int $startdate Date to set as course start time
      * @param int $enddate Date to set as course end time
      */
-    public static function queue(core_course_category $src, core_course_category $dest, string $cloneid, int $startdate = 0,
+    public static function queue(core_course_category $src, core_course_category $dest, int $startdate = 0,
         int $enddate = 0) {
 
         $courseids = array_keys($src->get_courses(['recursive' => false]));
@@ -100,9 +99,7 @@ class cloner {
                 'destid' => $dest->id,
                 'srcid' => $src->id,
                 'startdate' => $startdate,
-                'enddate' => $enddate,
-                // Use a uniqueid to track the clone.
-                'cloneid' => $cloneid
+                'enddate' => $enddate
             ]);
             manager::queue_adhoc_task($task, true);
         }
@@ -114,11 +111,10 @@ class cloner {
      * @param int $courseid course to clone (in $src category)
      * @param core_course_category $src source category
      * @param core_course_category $dest destination category
-     * @param string $cloneid Unique id to identify a group of clones in logs and adhoc tasks
      * @param int $startdate Course start date to set for cloned courses
      * @param int $enddate Course end date to set for cloned courses
      */
-    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest, string $cloneid,
+    public static function clone_course(int $courseid, core_course_category $src, core_course_category $dest,
         int $startdate = 0, int $enddate = 0) {
 
         global $DB;
@@ -126,13 +122,12 @@ class cloner {
         core_php_time_limit::raise(600);
 
         $course = get_course($courseid);
-        $idn = explode('_', $course->shortname);
-        $shortname = reset($idn) . '_' . $dest->idnumber;
+        $shortname = self::get_shortname_when_cloning_course($course->shortname, $dest->idnumber);
 
         // If a course matching the shortname and destination category already exists, skip it.
         if ($DB->record_exists("course", ["shortname" => $shortname, "category" => $dest->id])) {
             $msg = "Course with shortname {$shortname} already exists in the category. Skipped.";
-            self::log_clone_status($cloneid, $msg, false, $courseid, $src->id, $dest->id);
+            self::log_clone_status($msg, false, $courseid, $src->id, $dest->id);
             return;
         }
 
@@ -164,29 +159,52 @@ class cloner {
         $entry = "Cloned {$course->id}/{$course->shortname} into {$newid}/{$newshortname};";
 
         // Log success to event log.
-        self::log_clone_status($cloneid, $entry, true, $clone['id'], $src->id, $dest->id);
+        self::log_clone_status($entry, true, $clone['id'], $src->id, $dest->id);
     }
 
     /**
      * Logs the status of a clone, by triggering a course_cloned event.
      *
-     * @param string $cloneid Unique ID to identify the log
      * @param string $statusmsg
      * @param bool $success true if cloned successfully, else false
      * @param int $courseid
      * @param int $srccatid
      * @param int $destcatid
      */
-    public static function log_clone_status(string $cloneid, string $statusmsg, bool $success, int $courseid = 0, int $srccatid = 0,
+    public static function log_clone_status(string $statusmsg, bool $success, int $courseid = 0, int $srccatid = 0,
         int $destcatid = 0) {
         $event = course_cloned::create([
             "context"  => context_system::instance(),
             "objectid" => $courseid,
-            "other" => ["log" => $statusmsg, "cloneid" => $cloneid, "success" => $success, "sourcecategory" => $srccatid,
-                "destcategory" => $destcatid]
+            "other" => ["log" => $statusmsg, "success" => $success, "sourcecategory" => $srccatid, "destcategory" => $destcatid]
         ]);
         $event->trigger();
 
         mtrace($statusmsg);
+    }
+
+    /**
+     * Returns the shortname that will be used when cloning the given course.
+     * @param string $coursebeingclonedshortname The shortname of the course being cloned
+     * @param string $destcatidnumber the idnumber of the destination category
+     * @return string
+     */
+    public static function get_shortname_when_cloning_course(string $coursebeingclonedshortname, string $destcatidnumber): string {
+        $idn = explode('_', $coursebeingclonedshortname);
+        $shortname = reset($idn) . '_' . $destcatidnumber;
+
+        return $shortname;
+    }
+
+    /**
+     * Gets clone_course_task objects that are queued for processing for the given destination id.
+     * @param int $destid Destination category id
+     * @return array array of clone_course_task objects.
+     */
+    public static function get_pending_tasks_for_destination_category(int $destid): array {
+        $tasks = \core\task\manager::get_adhoc_tasks(clone_course_task::class);
+        $relevanttasks = array_filter($tasks, fn($t) => $t->get_custom_data()->destid == $destid);
+
+        return $relevanttasks;
     }
 }

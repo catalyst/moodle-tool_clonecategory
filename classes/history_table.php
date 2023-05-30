@@ -32,16 +32,14 @@ class history_table extends table_sql {
      /**
       * Create table
       * @param string $uniqueid
-      * @param string $cloneidfilter clone ID to filter by
       */
-    public function __construct(string $uniqueid, string $cloneidfilter) {
+    public function __construct(string $uniqueid) {
         global $PAGE, $DB;
 
         parent::__construct($uniqueid);
 
         $columns = [
             'id',
-            'cloneid',
             'timecreated',
             'message',
             'status'
@@ -49,7 +47,6 @@ class history_table extends table_sql {
 
         $headers = [
             get_string('history:id', 'local_clonecategory'),
-            get_string('history:cloneid', 'local_clonecategory'),
             get_string('history:time', 'local_clonecategory'),
             get_string('history:message', 'local_clonecategory'),
             get_string('history:status', 'local_clonecategory'),
@@ -59,25 +56,9 @@ class history_table extends table_sql {
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
 
-        $where = "eventname = :eventname";
-        $params = ['eventname' => '\local_clonecategory\event\course_cloned'];
-
-        if (!empty($cloneidfilter)) {
-            $where .= " AND " . $DB->sql_like('other', ':cloneid');
-            $params['cloneid'] = '%' . $cloneidfilter . '%';
-        }
-
-        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', $where, $params);
-        $this->sortable(true, 'timecreated', SORT_DESC);
-    }
-
-    /**
-     * Clone ID column.
-     * @param object $row
-     */
-    public function col_cloneid($row) {
-        $decoded = \tool_log\helper\reader::decode_other($row->other);
-        return $decoded['cloneid'] ?? '';
+        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', "eventname = :eventname",
+            ['eventname' => '\local_clonecategory\event\course_cloned']);
+        $this->sortable(false, 'timecreated', SORT_DESC);
     }
 
     /**
@@ -119,10 +100,9 @@ class history_table extends table_sql {
 
     /**
      * Creates table and renders it.
-     * @param string $cloneidfilter Clone ID to filter by, ignores if empty.
      */
-    public static function display(string $cloneidfilter = '') {
-        $table = new history_table(uniqid('queued_table'), $cloneidfilter);
+    public static function display() {
+        $table = new history_table(uniqid('queued_table'));
         $table->set_attribute('class', 'generalbox generaltable table-sm');
         $table->out(100, true);
     }

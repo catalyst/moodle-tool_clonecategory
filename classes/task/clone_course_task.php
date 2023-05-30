@@ -33,14 +33,11 @@ class clone_course_task extends \core\task\adhoc_task {
     public function execute() {
         $data = $this->get_custom_data();
 
-        // Clone ID is used to track cloning in logs and adhoc tasks.
-        $cloneid = $data->cloneid;
-
         try {
             $src = \core_course_category::get($data->srcid);
             $dest = \core_course_category::get($data->destid);
 
-            \local_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $cloneid, $data->startdate, $data->enddate);
+            \local_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $data->startdate, $data->enddate);
         } catch (\Throwable $e) {
             // Catch so that adhoc task does not retry.
 
@@ -50,7 +47,7 @@ class clone_course_task extends \core\task\adhoc_task {
                 'message' => $e->getMessage()
             ]);
 
-            \local_clonecategory\cloner::log_clone_status($cloneid, $string, false, $data->courseid, $data->srcid, $data->destid);
+            \local_clonecategory\cloner::log_clone_status($string, false, $data->courseid, $data->srcid, $data->destid);
         }
     }
 }

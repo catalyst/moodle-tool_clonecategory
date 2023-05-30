@@ -57,16 +57,13 @@ $string['processed'] = 'Finished processing';
 $string['queuedsuccessfully'] = 'Queued successfully';
 $string['clonefailed'] = 'Cloning of course {$a->id} failed with message {$a->message}';
 
-$string['queued:id'] = 'Task ID';
-$string['queued:timecreated'] = 'Time requested';
-$string['queued:course'] = 'Course';
-$string['queued:categoryfrom'] = 'Category from';
-$string['queued:categoryto'] = 'Category to';
-$string['queued:timestarted'] = 'Processing start time';
-$string['queued:cloneid'] = 'Clone id';
+$string['cloning:fromto'] = 'Showing courses from category: {$a->src} being cloned to category: {$a->dest}';
+
+$string['cloning:source'] = 'Source course';
+$string['cloning:dest'] = 'Destination course';
+$string['cloning:status'] = 'Status';
 
 $string['history:id'] = 'Log id';
-$string['history:cloneid'] = 'Clone id';
 $string['history:time'] = 'Time';
 $string['history:message'] = 'Message';
 $string['history:status'] = 'Status';
