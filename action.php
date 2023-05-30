@@ -16,24 +16,24 @@
 /**
  * Clone category action form page.
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2018, tim@avide.com.au, 2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_clonecategory\category_status_table;
-use local_clonecategory\cloner;
-use local_clonecategory\form\clonecategory_form;
-use local_clonecategory\history_table;
-use local_clonecategory\queued_table;
+use tool_clonecategory\category_status_table;
+use tool_clonecategory\cloner;
+use tool_clonecategory\form\clonecategory_form;
+use tool_clonecategory\history_table;
+use tool_clonecategory\queued_table;
 
-require('../../config.php');
+require('../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 admin_externalpage_setup('clonecategory_action');
 
 $action = optional_param('action', '', PARAM_ALPHA);
-$config = get_config('local_clonecategory');
+$config = get_config('tool_clonecategory');
 
 $action = optional_param('action', false, PARAM_ALPHA);
 $source = optional_param('source', 0, PARAM_INT);
@@ -47,7 +47,7 @@ $srcid = optional_param('srcid', 0, PARAM_INT);
 
 $end = optional_param('end', strtotime('+3 month', time()), PARAM_INT);
 
-$PAGE->set_url(new moodle_url("/local/clonecategory/action.php", ['destid' => $destid, 'srcid' => $srcid]));
+$PAGE->set_url(new moodle_url("/admin/tool/clonecategory/action.php", ['destid' => $destid, 'srcid' => $srcid]));
 $PAGE->set_context(context_system::instance());
 
 $cloneform = new clonecategory_form(null, [
@@ -60,7 +60,7 @@ $cloneform = new clonecategory_form(null, [
 
 // Redirect back if form is cancelled.
 if ($cloneform->is_cancelled()) {
-    redirect(new moodle_url("/local/clonecategory/action.php"));
+    redirect(new moodle_url("/admin/tool/clonecategory/action.php"));
 }
 
 if ($data = $cloneform->get_data()) {
@@ -69,18 +69,18 @@ if ($data = $cloneform->get_data()) {
     cloner::queue($src, $dest, $data->startdate, $data->enddate);
 
     $url = new moodle_url($PAGE->url, ['destid' => $dest->id, 'srcid' => $src->id]);
-    redirect($url, get_string('queuedsuccessfully', 'local_clonecategory'), null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect($url, get_string('queuedsuccessfully', 'tool_clonecategory'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('action_link', 'local_clonecategory'));
+echo $OUTPUT->heading(get_string('action_link', 'tool_clonecategory'));
 $cloneform->display();
 
 if (!empty($srcid) && !empty($destid)) {
-    echo $OUTPUT->heading(get_string('queued_table', 'local_clonecategory'));
+    echo $OUTPUT->heading(get_string('queued_table', 'tool_clonecategory'));
     category_status_table::display($srcid, $destid);
 }
 
-echo $OUTPUT->single_button(new moodle_url('/local/clonecategory/history.php'), get_string('viewclonelogs', 'local_clonecategory'));
+echo $OUTPUT->single_button(new moodle_url('/admin/tool/clonecategory/history.php'), get_string('viewclonelogs', 'tool_clonecategory'));
 
 echo $OUTPUT->footer();

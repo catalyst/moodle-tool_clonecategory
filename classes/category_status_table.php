@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_clonecategory;
+namespace tool_clonecategory;
 
 use core\output\notification;
 use core_course_category;
@@ -27,7 +27,7 @@ require_once($CFG->libdir . '/tablelib.php');
 /**
  * Clone category queued clones table.
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -57,9 +57,9 @@ class category_status_table extends table_sql {
         ];
 
         $headers = [
-            get_string('cloning:source', 'local_clonecategory'),
-            get_string('cloning:dest', 'local_clonecategory'),
-            get_string('cloning:status', 'local_clonecategory')
+            get_string('cloning:source', 'tool_clonecategory'),
+            get_string('cloning:dest', 'tool_clonecategory'),
+            get_string('cloning:status', 'tool_clonecategory')
         ];
 
         $this->define_columns($columns);
@@ -106,7 +106,7 @@ class category_status_table extends table_sql {
 
         // Does the clone destination course exist? If yes report success.
         if (!empty($clonedestination->course)) {
-            return \html_writer::tag('p', get_string('success', 'local_clonecategory'), ['class' => 'badge badge-success']);
+            return \html_writer::tag('p', get_string('success', 'tool_clonecategory'), ['class' => 'badge badge-success']);
         }
 
         // Is there an adhoc task for the clone source course?
@@ -118,13 +118,13 @@ class category_status_table extends table_sql {
 
             // Not started yet.
             if (empty($task->get_timestarted())) {
-                return \html_writer::tag('p', get_string('notstarted', 'local_clonecategory'), ['class' => 'badge badge-light']);
+                return \html_writer::tag('p', get_string('notstarted', 'tool_clonecategory'), ['class' => 'badge badge-light']);
             }
 
             // Started.
             $timestamp = userdate($task->get_timestarted());
             $delta = format_time(time() - $task->get_timestarted());
-            return \html_writer::tag('p', get_string('started', 'local_clonecategory', $delta), ['class' => 'badge badge-info',
+            return \html_writer::tag('p', get_string('started', 'tool_clonecategory', $delta), ['class' => 'badge badge-info',
                 'title' => $timestamp]);;
         }
 
@@ -172,7 +172,7 @@ class category_status_table extends table_sql {
 
         // Show banner which tells user about what categories are being shown.
         $categories = core_course_category::get_many([$srcid, $destid]);
-        $headerstring = get_string('cloning:fromto', 'local_clonecategory', [
+        $headerstring = get_string('cloning:fromto', 'tool_clonecategory', [
             'src' => $categories[$srcid]->name,
             'dest' => $categories[$destid]->name
         ]);

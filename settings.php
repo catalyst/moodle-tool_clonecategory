@@ -11,12 +11,12 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU General Public Licensetool_clonecategory
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Clone category admin settings
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2018, tim@avide.com.au, 2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -24,17 +24,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 if (has_capability('moodle/site:config', context_system::instance())) {
-    $ADMIN->add('localplugins', new admin_category('local_clonecategory_pages', get_string('action_link', 'local_clonecategory')));
+    $ADMIN->add('tools', new admin_category('tool_clonecategory_pages', get_string('action_link', 'tool_clonecategory')));
 
     // Main page.
-    $ADMIN->add('local_clonecategory_pages', new admin_externalpage(
+    $ADMIN->add('tool_clonecategory_pages', new admin_externalpage(
         'clonecategory_action',
-        get_string('action_link', 'local_clonecategory'),
-        $CFG->wwwroot. '/local/clonecategory/action.php'));
+        get_string('action_link', 'tool_clonecategory'),
+        $CFG->wwwroot. '/admin/tool/clonecategory/action.php'));
 
     // History page.
-    $ADMIN->add('local_clonecategory_pages', new admin_externalpage(
+    $ADMIN->add('tool_clonecategory_pages', new admin_externalpage(
         'clonecategory_history',
-        get_string('cloning_history', 'local_clonecategory'),
-        $CFG->wwwroot. '/local/clonecategory/history.php'));
+        get_string('cloning_history', 'tool_clonecategory'),
+        $CFG->wwwroot. '/admin/tool/clonecategory/history.php'));
 }

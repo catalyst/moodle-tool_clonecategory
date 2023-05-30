@@ -16,12 +16,12 @@
 /**
  * Clone category action form page.
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2018, tim@avide.com.au, 2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_clonecategory\task;
+namespace tool_clonecategory\task;
 
 /**
  * Course cloning task.
@@ -37,17 +37,17 @@ class clone_course_task extends \core\task\adhoc_task {
             $src = \core_course_category::get($data->srcid);
             $dest = \core_course_category::get($data->destid);
 
-            \local_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $data->startdate, $data->enddate);
+            \tool_clonecategory\cloner::clone_course($data->courseid, $src, $dest, $data->startdate, $data->enddate);
         } catch (\Throwable $e) {
             // Catch so that adhoc task does not retry.
 
             // Log error into events log.
-            $string = get_string('clonefailed', 'local_clonecategory', [
+            $string = get_string('clonefailed', 'tool_clonecategory', [
                 'id' => $data->courseid,
                 'message' => $e->getMessage()
             ]);
 
-            \local_clonecategory\cloner::log_clone_status($string, false, $data->courseid, $data->srcid, $data->destid);
+            \tool_clonecategory\cloner::log_clone_status($string, false, $data->courseid, $data->srcid, $data->destid);
         }
     }
 }

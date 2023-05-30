@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_clonecategory;
+namespace tool_clonecategory;
 
 use context_system;
 use core\task\manager;
@@ -22,8 +22,8 @@ use core_course_category;
 use core_course_external;
 use core_php_time_limit;
 use Exception;
-use local_clonecategory\event\course_cloned;
-use local_clonecategory\task\clone_course_task;
+use tool_clonecategory\event\course_cloned;
+use tool_clonecategory\task\clone_course_task;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -32,7 +32,7 @@ require_once($CFG->dirroot . '/course/externallib.php');
 /**
  *  Cloner class
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -61,7 +61,7 @@ class cloner {
 
             // Verify the existing category is a child of the $dest category.
             if (!empty($existingcat) && $existingcat->parent != $dest->id) {
-                throw new moodle_exception('error:invalididnumber', 'local_clonecategory');
+                throw new moodle_exception('error:invalididnumber', 'tool_clonecategory');
             }
 
             if (!empty($existingcat)) {

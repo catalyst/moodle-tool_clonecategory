@@ -16,22 +16,22 @@
 /**
  * Clone category history page.
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_clonecategory\history_table;
+use tool_clonecategory\history_table;
 
-require('../../config.php');
+require('../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 admin_externalpage_setup('clonecategory_history');
 
-$PAGE->set_url(new moodle_url("/local/clonecategory/history.php"));
+$PAGE->set_url(new moodle_url("/admin/tool/clonecategory/history.php"));
 $PAGE->set_context(context_system::instance());
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('history_table', 'local_clonecategory'));
+echo $OUTPUT->heading(get_string('history_table', 'tool_clonecategory'));
 history_table::display();
 echo $OUTPUT->footer();

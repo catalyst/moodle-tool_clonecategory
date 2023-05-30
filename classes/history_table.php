@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_clonecategory;
+namespace tool_clonecategory;
 
 use table_sql;
 
@@ -24,7 +24,7 @@ require_once($CFG->libdir . '/tablelib.php');
 /**
  * Clonecategory log history table
  *
- * @package    local_clonecategory
+ * @package    tool_clonecategory
  * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -46,10 +46,10 @@ class history_table extends table_sql {
         ];
 
         $headers = [
-            get_string('history:id', 'local_clonecategory'),
-            get_string('history:time', 'local_clonecategory'),
-            get_string('history:message', 'local_clonecategory'),
-            get_string('history:status', 'local_clonecategory'),
+            get_string('history:id', 'tool_clonecategory'),
+            get_string('history:time', 'tool_clonecategory'),
+            get_string('history:message', 'tool_clonecategory'),
+            get_string('history:status', 'tool_clonecategory'),
         ];
 
         $this->define_columns($columns);
@@ -57,7 +57,7 @@ class history_table extends table_sql {
         $this->baseurl = $PAGE->url;
 
         $this->set_sql('id,other,timecreated', '{logstore_standard_log}', "eventname = :eventname",
-            ['eventname' => '\local_clonecategory\event\course_cloned']);
+            ['eventname' => '\tool_clonecategory\event\course_cloned']);
         $this->sortable(false, 'timecreated', SORT_DESC);
     }
 
@@ -87,11 +87,11 @@ class history_table extends table_sql {
         $success = $decoded['success'] ?? '';
 
         if ($success === false) {
-            return \html_writer::tag('p', get_string('failed', 'local_clonecategory'), ['class' => 'badge badge-danger']);
+            return \html_writer::tag('p', get_string('failed', 'tool_clonecategory'), ['class' => 'badge badge-danger']);
         }
 
         if ($success === true) {
-            return \html_writer::tag('p', get_string('success', 'local_clonecategory'), ['class' => 'badge badge-success']);
+            return \html_writer::tag('p', get_string('success', 'tool_clonecategory'), ['class' => 'badge badge-success']);
         }
 
         // Unknown success status.

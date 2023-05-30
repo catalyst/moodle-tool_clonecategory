@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_clonecategory\event;
+namespace tool_clonecategory\event;
 
 /**
  * Registration of the system events.
  *
- * @package   local_clonecategory
+ * @package   tool_clonecategory
  * @copyright 2018, tim@avide.com.au
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -37,7 +37,7 @@ class course_cloned extends \core\event\base {
      * Return localised event name.
      */
     public static function get_name() {
-        return new \lang_string("eventcoursecloned", "local_clonecategory");
+        return new \lang_string("eventcoursecloned", "tool_clonecategory");
     }
 
     /**
@@ -51,6 +51,6 @@ class course_cloned extends \core\event\base {
      * Get URL related to the action.
      */
     public function get_url() {
-        return new \moodle_url("/local/clonecategory/action.php");
+        return new \moodle_url("/admin/tool/clonecategory/action.php");
     }
 }
