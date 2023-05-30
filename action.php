@@ -60,7 +60,7 @@ $cloneform = new clonecategory_form(null, [
 
 // Redirect back if form is cancelled.
 if ($cloneform->is_cancelled()) {
-    redirect($returnurl);
+    redirect(new moodle_url("/local/clonecategory/action.php"));
 }
 
 if ($data = $cloneform->get_data()) {
