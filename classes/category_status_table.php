@@ -180,7 +180,7 @@ class category_status_table extends table_sql {
 
         // Show table to show status.
         $table = new category_status_table(uniqid('category_status_table'), $srcid, $destid);
-        $table->set_attribute('class', 'generalbox generaltable table-sm');
+        $table->set_attribute('class', 'generalbox generaltable table-sm w-auto');
         $table->out(100, true);
     }
 }
