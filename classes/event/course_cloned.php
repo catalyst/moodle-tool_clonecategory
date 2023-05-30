@@ -14,21 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Registration of the system of events.
- *
- * @package   local_webhooks
- * @copyright 2017 "Valentin Popov" <info@valentineus.link>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace local_clonecategory\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * Defines how to work with events.
+ * Registration of the system events.
  *
+ * @package   local_clonecategory
+ * @copyright 2018, tim@avide.com.au
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_cloned extends \core\event\base {

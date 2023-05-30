@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * Clone category version information.
+ * Clone category history page.
  *
  * @package    local_clonecategory
- * @copyright  2018, tim@avide.com.au
+ * @copyright  2023 Matthew Hilton <matthewhilton@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+use local_clonecategory\history_table;
 
-$plugin->component = 'local_clonecategory';
-$plugin->version = 2023052600;
-$plugin->requires = 2014051200;
-$plugin->maturity = MATURITY_RC;
-$plugin->release = 'v1.0.rc1';
+require('../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+
+admin_externalpage_setup('clonecategory_history');
+
+$PAGE->set_url(new moodle_url("/local/clonecategory/history.php"));
+$PAGE->set_context(context_system::instance());
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('history_table', 'local_clonecategory'));
+history_table::display();
+echo $OUTPUT->footer();
