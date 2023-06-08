@@ -103,11 +103,7 @@ class category_status_table extends table_sql {
      */
     public function col_status(object $row) {
         $clonedestination = $this->get_row_corresponding_clone_course($row->shortname);
-
-        // Does the clone destination course exist? If yes report success.
-        if (!empty($clonedestination->course)) {
-            return \html_writer::tag('p', get_string('success', 'tool_clonecategory'), ['class' => 'badge badge-success']);
-        }
+        // Note - check for tasks first, since the course might exist but the contents inside are still being backed up.
 
         // Is there an adhoc task for the clone source course?
         // If so output either started or inprogress depending on adhoc task status.
@@ -126,6 +122,11 @@ class category_status_table extends table_sql {
             $delta = format_time(time() - $task->get_timestarted());
             return \html_writer::tag('p', get_string('started', 'tool_clonecategory', $delta), ['class' => 'badge badge-info',
                 'title' => $timestamp]);;
+        }
+
+        // Does the clone destination course exist? If yes report success.
+        if (!empty($clonedestination->course)) {
+            return \html_writer::tag('p', get_string('success', 'tool_clonecategory'), ['class' => 'badge badge-success']);
         }
 
         // Else is unknown.
