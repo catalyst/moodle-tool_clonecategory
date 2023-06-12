@@ -25,6 +25,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_clonecategory';
 $plugin->version = 2023061300;
+$plugin->release = 2023061300;
 $plugin->requires = 2014051200;
-$plugin->maturity = MATURITY_RC;
-$plugin->release = 'v1.0.rc1';
+$plugin->maturity = MATURITY_STABLE;
