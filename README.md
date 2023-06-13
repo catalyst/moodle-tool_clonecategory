@@ -1,3 +1,7 @@
+<a href="https://github.com/catalyst/moodle-tool_clonecategory/actions">
+<img src="https://github.com/catalyst/moodle-tool_clonecategory/workflows/ci/badge.svg">
+</a>
+
 # clone category
 
 a plugin to perform a backup/restore of every course in a category to a newly speicifed category, modifying some properties as you go.
