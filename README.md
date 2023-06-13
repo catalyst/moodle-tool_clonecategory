@@ -4,9 +4,11 @@ a plugin to perform a backup/restore of every course in a category to a newly sp
 
 ## Installation
 
-Put into your /local/ plugins folder and hit up the site notifications as admin
+Put into your admin tools plugins folder and run the normal upgrade:
 
-or `cd ./local && git clone https://github.com/frumbert/clonecategory.git clonecategory`
+```
+git clone git@github.com:catalyst/moodle-tool_clonecategory.git admin/tool/clonecategory
+```
 
 ## Usage
 
