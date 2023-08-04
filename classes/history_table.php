@@ -32,8 +32,10 @@ class history_table extends table_sql {
      /**
       * Create table
       * @param string $uniqueid
+      * @param int $startdate
+      * @param int $enddate
       */
-    public function __construct(string $uniqueid) {
+    public function __construct(string $uniqueid, int $startdate = 0, int $enddate = 0) {
         global $PAGE, $DB;
 
         parent::__construct($uniqueid);
@@ -56,8 +58,15 @@ class history_table extends table_sql {
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
 
-        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', "eventname = :eventname",
-            ['eventname' => '\tool_clonecategory\event\course_cloned']);
+        $this->set_sql('id,other,timecreated',
+            '{logstore_standard_log}',
+            "eventname = :eventname AND timecreated > :startdate AND timecreated < :enddate",
+            [
+                'eventname' => '\tool_clonecategory\event\course_cloned',
+                'startdate' => $startdate,
+                'enddate' => $enddate,
+            ]
+        );
         $this->sortable(false, 'timecreated', SORT_DESC);
     }
 
@@ -100,9 +109,11 @@ class history_table extends table_sql {
 
     /**
      * Creates table and renders it.
+      * @param int $startdate
+      * @param int $enddate
      */
-    public static function display() {
-        $table = new history_table(uniqid('queued_table'));
+    public static function display(int $startdate = 0, int $enddate = 0) {
+        $table = new history_table(uniqid('queued_table'), $startdate, $enddate);
         $table->set_attribute('class', 'generalbox generaltable table-sm');
         $table->out(100, true);
     }
