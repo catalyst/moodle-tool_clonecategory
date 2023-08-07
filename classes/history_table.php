@@ -35,20 +35,18 @@ class history_table extends table_sql {
       * @param int $startdate
       * @param int $enddate
       */
-    public function __construct(string $uniqueid, int $startdate = 0, int $enddate = 0) {
+    public function __construct(string $uniqueid, int $startdate, int $enddate) {
         global $PAGE, $DB;
 
         parent::__construct($uniqueid);
 
         $columns = [
-            'id',
             'timecreated',
             'message',
             'status'
         ];
 
         $headers = [
-            get_string('history:id', 'tool_clonecategory'),
             get_string('history:time', 'tool_clonecategory'),
             get_string('history:message', 'tool_clonecategory'),
             get_string('history:status', 'tool_clonecategory'),
@@ -57,43 +55,33 @@ class history_table extends table_sql {
         $this->define_columns($columns);
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
-
-        $this->set_sql('id,other,timecreated',
-            '{logstore_standard_log}',
-            "eventname = :eventname AND timecreated > :startdate AND timecreated < :enddate",
-            [
-                'eventname' => '\tool_clonecategory\event\course_cloned',
-                'startdate' => $startdate,
-                'enddate' => $enddate,
-            ]
-        );
         $this->sortable(false, 'timecreated', SORT_DESC);
+        $this->startdate = $startdate;
+        $this->enddate = $enddate;
     }
 
     /**
      * Timecreated col
-     * @param object $row
+     * @param object $event
      */
-    public function col_timecreated($row) {
-        return userdate($row->timecreated);
+    public function col_timecreated($event) {
+        return userdate($event->timecreated);
     }
 
     /**
      * Message col
-     * @param object $row
+     * @param object $event
      */
-    public function col_message($row) {
-        $decoded = \tool_log\helper\reader::decode_other($row->other);
-        return $decoded['log'] ?? '';
+    public function col_message($event) {
+        return $event->other['log'];
     }
 
     /**
      * Status column.
-     * @param object $row
+     * @param object $event
      */
-    public function col_status($row) {
-        $decoded = \tool_log\helper\reader::decode_other($row->other);
-        $success = $decoded['success'] ?? '';
+    public function col_status($event) {
+        $success = $event->other['success'] ?? '';
 
         if ($success === false) {
             return \html_writer::tag('p', get_string('failed', 'tool_clonecategory'), ['class' => 'badge badge-danger']);
@@ -109,12 +97,32 @@ class history_table extends table_sql {
 
     /**
      * Creates table and renders it.
-      * @param int $startdate
-      * @param int $enddate
+     * @param int $startdate
+     * @param int $enddate
      */
     public static function display(int $startdate = 0, int $enddate = 0) {
         $table = new history_table(uniqid('queued_table'), $startdate, $enddate);
         $table->set_attribute('class', 'generalbox generaltable table-sm');
         $table->out(100, true);
+    }
+
+
+    /**
+     * Query the reader. Store results in the object for use by build_table.
+     *
+     * @param int $pagesize size of page for paginated displayed table.
+     * @param bool $useinitialsbar do you want to use the initials bar.
+     */
+    public function query_db($pagesize, $useinitialsbar = true) {
+        $manager = get_log_manager();
+        $readers = $manager->get_readers();
+        $reader = reset($readers);
+
+        // Grab recordset for course_cloned event.
+        $event = '\tool_clonecategory\event\course_cloned';
+        $select = "eventname = ? AND timecreated > ? AND timecreated < ?";
+
+        $this->rawdata = $reader->get_events_select($select, array($event, $this->startdate, $this->enddate), '', null, null);
+
     }
 }
