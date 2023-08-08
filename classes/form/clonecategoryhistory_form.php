@@ -36,34 +36,10 @@ class clonecategoryhistory_form extends \moodleform {
         $data = $this->_customdata;
         $buttonlabel = get_string('clone_history', 'tool_clonecategory');
 
-        // Timestamp of start date of all newly cloned courses.
-        $mform->addElement('date_selector', 'startdate', get_string('historystartdate', 'tool_clonecategory'));
-        $mform->setDefault('startdate', $data['startdate']);
-
-        // Timestamp of end date of all newly cloned courses.
-        $mform->addElement('date_selector', 'enddate', get_string('historyenddate', 'tool_clonecategory'));
-        $mform->setDefault('enddate', $data['enddate']);
+        $mform->addElement('duration', 'timelimit', get_string('historylimit', 'tool_clonecategory'), array('defaultunit' => DAYSECS));
+        $mform->setDefault('timelimit', $data['timelimit']);
 
         $this->add_action_buttons(true, $buttonlabel);
-    }
-
-    /**
-     * Validates the data submit for this form.
-     *
-     * @param array $data An array of key,value data pairs.
-     * @param array $files Any files that may have been submit as well.
-     * @return array An array of errors.
-     */
-    public function validation($data, $files) {
-        global $DB;
-        $errors = parent::validation($data, $files);
-
-        if (!empty($data['enddate']) && !empty($data['startdate'])) {
-            if ($data['enddate'] < $data['startdate'] || $data['startdate'] === $data['enddate']) {
-                $errors['enddate'] = get_string('error_date_problem', 'tool_clonecategory');
-            }
-        }
-        return $errors;
     }
 
     /**

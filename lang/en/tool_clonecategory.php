@@ -76,5 +76,4 @@ $string['success'] = 'Success';
 $string['error:invalididnumber'] = 'The ID number of the category given to create is already linked to a category that is not a child of the destination category selected';
 
 $string['clone_history'] = 'View clone logs';
-$string['historystartdate'] = 'Start date';
-$string['historyenddate'] = 'End date';
+$string['historylimit'] = 'Limit logs to previous';

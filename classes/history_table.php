@@ -32,10 +32,9 @@ class history_table extends table_sql {
      /**
       * Create table
       * @param string $uniqueid
-      * @param int $startdate
-      * @param int $enddate
+      * @param int $timelimit
       */
-    public function __construct(string $uniqueid, int $startdate, int $enddate) {
+    public function __construct(string $uniqueid, int $timelimit) {
         global $PAGE, $DB;
 
         parent::__construct($uniqueid);
@@ -56,8 +55,7 @@ class history_table extends table_sql {
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
         $this->sortable(false, 'timecreated', SORT_DESC);
-        $this->startdate = $startdate;
-        $this->enddate = $enddate;
+        $this->timelimit = $timelimit;
     }
 
     /**
@@ -97,11 +95,10 @@ class history_table extends table_sql {
 
     /**
      * Creates table and renders it.
-     * @param int $startdate
-     * @param int $enddate
+     * @param int $timelimit
      */
-    public static function display(int $startdate = 0, int $enddate = 0) {
-        $table = new history_table(uniqid('queued_table'), $startdate, $enddate);
+    public static function display(int $timelimit) {
+        $table = new history_table(uniqid('queued_table'), $timelimit);
         $table->set_attribute('class', 'generalbox generaltable table-sm');
         $table->out(100, true);
     }
@@ -117,12 +114,12 @@ class history_table extends table_sql {
         $manager = get_log_manager();
         $readers = $manager->get_readers();
         $reader = reset($readers);
+        $starttime = time() - $this->timelimit;
 
         // Grab recordset for course_cloned event.
         $event = '\tool_clonecategory\event\course_cloned';
-        $select = "eventname = ? AND timecreated > ? AND timecreated < ?";
+        $select = "eventname = ? AND timecreated > ?";
 
-        $this->rawdata = $reader->get_events_select($select, array($event, $this->startdate, $this->enddate), '', null, null);
-
+        $this->rawdata = $reader->get_events_select($select, array($event, $starttime), '', null, null);
     }
 }
