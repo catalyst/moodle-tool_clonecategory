@@ -32,21 +32,20 @@ class history_table extends table_sql {
      /**
       * Create table
       * @param string $uniqueid
+      * @param int $timelimit
       */
-    public function __construct(string $uniqueid) {
+    public function __construct(string $uniqueid, int $timelimit) {
         global $PAGE, $DB;
 
         parent::__construct($uniqueid);
 
         $columns = [
-            'id',
             'timecreated',
             'message',
             'status'
         ];
 
         $headers = [
-            get_string('history:id', 'tool_clonecategory'),
             get_string('history:time', 'tool_clonecategory'),
             get_string('history:message', 'tool_clonecategory'),
             get_string('history:status', 'tool_clonecategory'),
@@ -55,36 +54,32 @@ class history_table extends table_sql {
         $this->define_columns($columns);
         $this->define_headers($headers);
         $this->baseurl = $PAGE->url;
-
-        $this->set_sql('id,other,timecreated', '{logstore_standard_log}', "eventname = :eventname",
-            ['eventname' => '\tool_clonecategory\event\course_cloned']);
         $this->sortable(false, 'timecreated', SORT_DESC);
+        $this->timelimit = $timelimit;
     }
 
     /**
      * Timecreated col
-     * @param object $row
+     * @param object $event
      */
-    public function col_timecreated($row) {
-        return userdate($row->timecreated);
+    public function col_timecreated($event) {
+        return userdate($event->timecreated);
     }
 
     /**
      * Message col
-     * @param object $row
+     * @param object $event
      */
-    public function col_message($row) {
-        $decoded = \tool_log\helper\reader::decode_other($row->other);
-        return $decoded['log'] ?? '';
+    public function col_message($event) {
+        return $event->other['log'];
     }
 
     /**
      * Status column.
-     * @param object $row
+     * @param object $event
      */
-    public function col_status($row) {
-        $decoded = \tool_log\helper\reader::decode_other($row->other);
-        $success = $decoded['success'] ?? '';
+    public function col_status($event) {
+        $success = $event->other['success'] ?? '';
 
         if ($success === false) {
             return \html_writer::tag('p', get_string('failed', 'tool_clonecategory'), ['class' => 'badge badge-danger']);
@@ -100,10 +95,31 @@ class history_table extends table_sql {
 
     /**
      * Creates table and renders it.
+     * @param int $timelimit
      */
-    public static function display() {
-        $table = new history_table(uniqid('queued_table'));
+    public static function display(int $timelimit) {
+        $table = new history_table(uniqid('queued_table'), $timelimit);
         $table->set_attribute('class', 'generalbox generaltable table-sm');
         $table->out(100, true);
+    }
+
+
+    /**
+     * Query the reader. Store results in the object for use by build_table.
+     *
+     * @param int $pagesize size of page for paginated displayed table.
+     * @param bool $useinitialsbar do you want to use the initials bar.
+     */
+    public function query_db($pagesize, $useinitialsbar = true) {
+        $manager = get_log_manager();
+        $readers = $manager->get_readers();
+        $reader = reset($readers);
+        $starttime = time() - $this->timelimit;
+
+        // Grab recordset for course_cloned event.
+        $event = '\tool_clonecategory\event\course_cloned';
+        $select = "eventname = ? AND timecreated > ?";
+
+        $this->rawdata = $reader->get_events_select($select, array($event, $starttime), '', null, null);
     }
 }

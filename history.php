@@ -21,17 +21,38 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tool_clonecategory\form\clonecategoryhistory_form;
 use tool_clonecategory\history_table;
 
 require('../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
+\core\session\manager::write_close();
+
 admin_externalpage_setup('clonecategory_history');
+
+// Default timelimit 31 days.
+$timelimit = optional_param_array('timelimit', 2678400, PARAM_INT);
+
+$clonehistoryform = new clonecategoryhistory_form(null, [
+   'timelimit' => $timelimit,
+]);
 
 $PAGE->set_url(new moodle_url("/admin/tool/clonecategory/history.php"));
 $PAGE->set_context(context_system::instance());
 
+// Redirect back if form is cancelled.
+if ($clonehistoryform->is_cancelled()) {
+    redirect($PAGE->url);
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('history_table', 'tool_clonecategory'));
-history_table::display();
+
+$clonehistoryform->display();
+
+if ($data = $clonehistoryform->get_data()) {
+    history_table::display($data->timelimit);
+}
+
 echo $OUTPUT->footer();
