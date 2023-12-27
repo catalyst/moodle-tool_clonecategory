@@ -77,3 +77,6 @@ $string['error:invalididnumber'] = 'The ID number of the category given to creat
 
 $string['clone_history'] = 'View clone logs';
 $string['historylimit'] = 'Limit logs to previous';
+
+$string['privacy:metadata'] = 'The clone category plugin does not store any personal data.';
+
