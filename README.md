@@ -8,6 +8,12 @@ A plugin to perform a backup/restore of every course in a category to a newly sp
 
 Solves a common business requirement to roll over template courses into new instances each teaching period.
 
+## Supported Branches
+
+| Moodle version    | Branch              | PHP  |
+|-------------------|---------------------|------|
+| Moodle 4.1+       | `MOODLE_401_STABLE` | 7.4+ |
+
 ## Installation
 
 Put into your admin tools plugins folder and run the normal upgrade:
